@@ -76,6 +76,6 @@ public class AuthService {
                         user.getEmail()
                 );
 
-        return new AuthResponse(token);
+        return new AuthResponse(token);;
     }
 }

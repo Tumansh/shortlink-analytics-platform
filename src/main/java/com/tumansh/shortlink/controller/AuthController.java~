@@ -1,11 +1,12 @@
 package com.tumansh.shortlink.controller;
 
+import com.tumansh.shortlink.dto.request.LoginRequest;
 import com.tumansh.shortlink.dto.request.RegisterRequest;
 import com.tumansh.shortlink.dto.response.ApiResponse;
+import com.tumansh.shortlink.dto.response.AuthResponse;
+import com.tumansh.shortlink.security.JWTService;
 import com.tumansh.shortlink.service.AuthService;
-
 import jakarta.validation.Valid;
-
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,5 +29,31 @@ public class AuthController {
         return new ApiResponse(
                 "User registered successfully"
         );
+    }
+
+    @PostMapping("/login")
+    public AuthResponse login(
+            @RequestBody LoginRequest request) {
+
+        return authService.login(request);
+    }
+
+    @RequestMapping("/test")
+    public class TestController {
+
+        private final JWTService jwtService;
+
+        public TestController(
+                JWTService jwtService) {
+
+            this.jwtService = jwtService;
+        }
+
+        @GetMapping("/email/{token}")
+        public String getEmail(
+                @RequestParam String token) {
+
+            return jwtService.extractEmail(token);
+        }
     }
 }
