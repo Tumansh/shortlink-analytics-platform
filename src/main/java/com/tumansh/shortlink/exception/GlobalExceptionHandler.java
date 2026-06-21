@@ -1,0 +1,36 @@
+package com.tumansh.shortlink.exception;
+
+import com.tumansh.shortlink.dto.response.ApiResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(
+            EmailAlreadyExistsException.class
+    )
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiResponse handleEmailExists(
+            EmailAlreadyExistsException ex){
+
+        return new ApiResponse(
+                ex.getMessage()
+        );
+    }
+
+    @ExceptionHandler(
+            InvalidCredentialsException.class
+    )
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiResponse handleUserCredentials(
+            InvalidCredentialsException ex){
+
+        return new ApiResponse(
+                ex.getMessage()
+        );
+    }
+
+}
+
+

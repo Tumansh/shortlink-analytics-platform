@@ -3,10 +3,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class URLShortner {
+public class ShortCodeGenerator {
 
 	public static void main(String[] args) {
-		SpringApplication.run(URLShortner.class, args);
+		SpringApplication.run(ShortCodeGenerator.class, args);
 	}
 
 }
