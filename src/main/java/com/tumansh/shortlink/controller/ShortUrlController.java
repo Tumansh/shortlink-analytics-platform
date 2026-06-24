@@ -1,7 +1,9 @@
 package com.tumansh.shortlink.controller;
 
 import com.tumansh.shortlink.dto.request.CreateShortUrlRequest;
+import com.tumansh.shortlink.dto.response.ApiResponse;
 import com.tumansh.shortlink.dto.response.ShortUrlResponse;
+import com.tumansh.shortlink.dto.response.UrlDetailsResponse;
 import com.tumansh.shortlink.service.ShortUrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/urls")
@@ -34,7 +37,7 @@ public class ShortUrlController {
         return shortUrlService
                 .createShortUrl(request);
     }
-    @GetMapping("/r/{shortCode}")
+    @GetMapping("/redirect/{shortCode}")
     public ResponseEntity<Void> redirect(
 
             @PathVariable
@@ -57,4 +60,26 @@ public class ShortUrlController {
                 .build();
     }
 
+    @GetMapping
+    public List<UrlDetailsResponse> getAllUrls() {
+        return shortUrlService.getAllUrls();
+    }
+
+    @GetMapping("/{shortCode}")
+    public UrlDetailsResponse getUrl(
+            @PathVariable String shortCode) {
+
+        return shortUrlService.getUrl(shortCode);
+    }
+
+    @DeleteMapping("/{shortCode}")
+    public ApiResponse deleteUrl(
+            @PathVariable String shortCode) {
+
+        shortUrlService.deleteUrl(shortCode);
+
+        return new ApiResponse(
+                "Short URL deleted successfully"
+        );
+    }
 }
