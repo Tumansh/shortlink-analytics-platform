@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(
             InvalidCredentialsException.class
     )
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse handleUserCredentials(
             InvalidCredentialsException ex){
 

@@ -1,0 +1,32 @@
+package com.tumansh.shortlink.controller;
+
+import com.tumansh.shortlink.dto.request.CreateShortUrlRequest;
+import com.tumansh.shortlink.dto.response.ShortUrlResponse;
+import com.tumansh.shortlink.service.ShortUrlService;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/urls")
+public class ShortUrlController {
+
+    private final ShortUrlService shortUrlService;
+
+    public ShortUrlController(
+            ShortUrlService shortUrlService) {
+
+        this.shortUrlService =
+                shortUrlService;
+    }
+
+    @PostMapping
+    public ShortUrlResponse createShortUrl(
+
+            @Valid
+            @RequestBody
+            CreateShortUrlRequest request) {
+
+        return shortUrlService
+                .createShortUrl(request);
+    }
+}

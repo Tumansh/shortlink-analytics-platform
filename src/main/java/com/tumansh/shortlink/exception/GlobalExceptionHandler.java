@@ -31,6 +31,18 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(
+            ShortUrlNotFoundException.class
+    )
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse handleShortUrlNotFound(
+            ShortUrlNotFoundException ex){
+
+        return new ApiResponse(
+                ex.getMessage()
+        );
+    }
+
 }
 
 
