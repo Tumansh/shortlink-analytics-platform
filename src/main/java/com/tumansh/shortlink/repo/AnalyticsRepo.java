@@ -9,11 +9,12 @@ import org.springframework.data.repository.query.Param;
 public interface AnalyticsRepo
         extends JpaRepository<Analytics, Long> {
     long countByShortUrl(ShortUrl shortUrl);
+
     @Query("""
-        SELECT COUNT(DISTINCT a.ipAddress)
-        FROM Analytics a
-        WHERE a.shortUrl = :shortUrl
-       """)
+             SELECT COUNT(DISTINCT a.ipAddress)
+             FROM Analytics a
+             WHERE a.shortUrl = :shortUrl
+            """)
     long countUniqueVisitors(
             @Param("shortUrl")
             ShortUrl shortUrl

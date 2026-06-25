@@ -30,7 +30,7 @@ public class AuthService {
 
     public void register(RegisterRequest request) {
 
-        if(userRepo.existsByEmail(request.email())){
+        if (userRepo.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException(
                     "Email already exists"
             );

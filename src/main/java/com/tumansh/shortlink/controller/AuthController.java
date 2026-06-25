@@ -4,10 +4,12 @@ import com.tumansh.shortlink.dto.request.LoginRequest;
 import com.tumansh.shortlink.dto.request.RegisterRequest;
 import com.tumansh.shortlink.dto.response.ApiResponse;
 import com.tumansh.shortlink.dto.response.AuthResponse;
-import com.tumansh.shortlink.security.JWTService;
 import com.tumansh.shortlink.service.AuthService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")

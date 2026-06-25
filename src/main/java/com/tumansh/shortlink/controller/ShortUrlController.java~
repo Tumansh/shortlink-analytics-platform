@@ -1,9 +1,7 @@
 package com.tumansh.shortlink.controller;
 
 import com.tumansh.shortlink.dto.request.CreateShortUrlRequest;
-import com.tumansh.shortlink.dto.response.ApiResponse;
-import com.tumansh.shortlink.dto.response.ShortUrlResponse;
-import com.tumansh.shortlink.dto.response.UrlDetailsResponse;
+import com.tumansh.shortlink.dto.response.*;
 import com.tumansh.shortlink.service.ShortUrlService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -21,74 +19,58 @@ public class ShortUrlController {
 
     private final ShortUrlService shortUrlService;
 
-    public ShortUrlController(
-            ShortUrlService shortUrlService) {
+    public ShortUrlController(ShortUrlService shortUrlService) {
 
-        this.shortUrlService =
-                shortUrlService;
+        this.shortUrlService = shortUrlService;
     }
 
     @PostMapping
-    public ShortUrlResponse createShortUrl(
+    public ShortUrlResponse createShortUrl(@Valid @RequestBody CreateShortUrlRequest request) {
 
-            @Valid
-            @RequestBody
-            CreateShortUrlRequest request) {
-
-        return shortUrlService
-                .createShortUrl(request);
+        return shortUrlService.createShortUrl(request);
     }
+
     @GetMapping("/redirect/{shortCode}")
-    public ResponseEntity<Void> redirect(
-            @PathVariable String shortCode,
-            HttpServletRequest request) {
+    public ResponseEntity<Void> redirect(@PathVariable String shortCode, HttpServletRequest request) {
 
-        String ipAddress =
-                request.getRemoteAddr();
+        String ipAddress = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
 
-        String userAgent =
-                request.getHeader("User-Agent");
+        String originalUrl = shortUrlService.getOriginalUrl(shortCode, ipAddress, userAgent);
 
-        String originalUrl =
-                shortUrlService.getOriginalUrl(
-                        shortCode,
-                        ipAddress,
-                        userAgent
-                );
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create(originalUrl));
 
-        HttpHeaders headers =
-                new HttpHeaders();
-
-        headers.setLocation(
-                URI.create(originalUrl)
-        );
-
-        return ResponseEntity
-                .status(HttpStatus.FOUND)
-                .headers(headers)
-                .build();
+        return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
     }
 
-    @GetMapping
-    public List<UrlDetailsResponse> getAllUrls() {
-        return shortUrlService.getAllUrls();
+    //    @PreAuthorize("hasRole('ADMIN')")
+//    @GetMapping
+//    public List<UrlDetailsResponse> getAllUrls() {
+//        return shortUrlService.getAllUrls();
+//    }
+    @GetMapping("/my")
+    public List<MyUrlsResponse> getMyUrls() {
+        return shortUrlService.getMyUrls();
     }
 
     @GetMapping("/{shortCode}")
-    public UrlDetailsResponse getUrl(
-            @PathVariable String shortCode) {
+    public UrlDetailsResponse getUrl(@PathVariable String shortCode) {
 
         return shortUrlService.getUrl(shortCode);
     }
 
     @DeleteMapping("/{shortCode}")
-    public ApiResponse deleteUrl(
-            @PathVariable String shortCode) {
+    public ApiResponse deleteUrl(@PathVariable String shortCode) {
 
         shortUrlService.deleteUrl(shortCode);
 
-        return new ApiResponse(
-                "Short URL deleted successfully"
-        );
+        return new ApiResponse("Short URL deleted successfully");
+    }
+
+    @GetMapping("/analytics/{shortCode}")
+    public AnalyticsResponse getAnalytics(@PathVariable String shortCode) {
+
+        return shortUrlService.getAnalytics(shortCode);
     }
 }

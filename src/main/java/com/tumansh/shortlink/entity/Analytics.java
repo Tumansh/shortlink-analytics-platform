@@ -29,36 +29,36 @@ public class Analytics {
         return id;
     }
 
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-    public LocalDateTime getClickedAt() {
-        return clickedAt;
-    }
-
-    public ShortUrl getShortUrl() {
-        return shortUrl;
-    }
-
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
     }
 
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
     }
 
+    public String getUserAgent() {
+        return userAgent;
+    }
+
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
     }
 
+    public LocalDateTime getClickedAt() {
+        return clickedAt;
+    }
+
     public void setClickedAt(LocalDateTime clickedAt) {
         this.clickedAt = clickedAt;
+    }
+
+    public ShortUrl getShortUrl() {
+        return shortUrl;
     }
 
     public void setShortUrl(ShortUrl shortUrl) {

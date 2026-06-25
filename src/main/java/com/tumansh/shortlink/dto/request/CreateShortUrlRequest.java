@@ -4,4 +4,5 @@ public record CreateShortUrlRequest(
 
         String originalUrl
 
-) {}
+) {
+}

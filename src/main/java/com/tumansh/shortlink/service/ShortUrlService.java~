@@ -10,7 +10,6 @@ import com.tumansh.shortlink.entity.ShortUrl;
 import com.tumansh.shortlink.entity.User;
 import com.tumansh.shortlink.exception.AccessDeniedException;
 import com.tumansh.shortlink.exception.ShortUrlNotFoundException;
-import com.tumansh.shortlink.exception.UserNotFoundException;
 import com.tumansh.shortlink.repo.AnalyticsRepo;
 import com.tumansh.shortlink.repo.ShortUrlRepo;
 import com.tumansh.shortlink.repo.UserRepo;
@@ -206,7 +205,7 @@ public class ShortUrlService {
 
         return userRepo.findByEmail(email)
                 .orElseThrow(() ->
-                        new UserNotFoundException(
+                        new RuntimeException(
                                 "User not found"
                         ));
     }

@@ -2,7 +2,9 @@ package com.tumansh.shortlink.exception;
 
 import com.tumansh.shortlink.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -12,7 +14,7 @@ public class GlobalExceptionHandler {
     )
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiResponse handleEmailExists(
-            EmailAlreadyExistsException ex){
+            EmailAlreadyExistsException ex) {
 
         return new ApiResponse(
                 ex.getMessage()
@@ -24,7 +26,7 @@ public class GlobalExceptionHandler {
     )
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse handleUserCredentials(
-            InvalidCredentialsException ex){
+            InvalidCredentialsException ex) {
 
         return new ApiResponse(
                 ex.getMessage()
@@ -36,7 +38,31 @@ public class GlobalExceptionHandler {
     )
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiResponse handleShortUrlNotFound(
-            ShortUrlNotFoundException ex){
+            ShortUrlNotFoundException ex) {
+
+        return new ApiResponse(
+                ex.getMessage()
+        );
+    }
+
+    @ExceptionHandler(
+            AccessDeniedException.class
+    )
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse handleAccessDenied(
+            AccessDeniedException ex) {
+
+        return new ApiResponse(
+                ex.getMessage()
+        );
+    }
+
+    @ExceptionHandler(
+            UserNotFoundException.class
+    )
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse handleUserNotFound(
+            UserNotFoundException ex) {
 
         return new ApiResponse(
                 ex.getMessage()
