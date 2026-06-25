@@ -1,10 +1,12 @@
 package com.tumansh.shortlink.controller;
 
 import com.tumansh.shortlink.dto.request.CreateShortUrlRequest;
+import com.tumansh.shortlink.dto.response.AnalyticsResponse;
 import com.tumansh.shortlink.dto.response.ApiResponse;
 import com.tumansh.shortlink.dto.response.ShortUrlResponse;
 import com.tumansh.shortlink.dto.response.UrlDetailsResponse;
 import com.tumansh.shortlink.service.ShortUrlService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,13 +41,21 @@ public class ShortUrlController {
     }
     @GetMapping("/redirect/{shortCode}")
     public ResponseEntity<Void> redirect(
+            @PathVariable String shortCode,
+            HttpServletRequest request) {
 
-            @PathVariable
-            String shortCode) {
+        String ipAddress =
+                request.getRemoteAddr();
+
+        String userAgent =
+                request.getHeader("User-Agent");
 
         String originalUrl =
-                shortUrlService
-                        .getOriginalUrl(shortCode);
+                shortUrlService.getOriginalUrl(
+                        shortCode,
+                        ipAddress,
+                        userAgent
+                );
 
         HttpHeaders headers =
                 new HttpHeaders();
@@ -81,5 +91,13 @@ public class ShortUrlController {
         return new ApiResponse(
                 "Short URL deleted successfully"
         );
+    }
+
+    @GetMapping("/analytics/{shortCode}")
+    public AnalyticsResponse getAnalytics(
+            @PathVariable String shortCode) {
+
+        return shortUrlService
+                .getAnalytics(shortCode);
     }
 }

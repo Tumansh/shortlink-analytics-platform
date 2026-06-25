@@ -3,6 +3,7 @@ package com.tumansh.shortlink.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "short_urls")
@@ -18,11 +19,17 @@ public class ShortUrl {
     @Column(nullable = false, unique = true)
     private String shortCode;
 
+    @OneToMany(mappedBy = "shortUrl")
+    private List<Analytics> analytics;
     private Long clickCount = 0L;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime expiryDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public ShortUrl() {
     }
