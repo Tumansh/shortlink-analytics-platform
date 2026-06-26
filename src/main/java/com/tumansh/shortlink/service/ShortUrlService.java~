@@ -10,29 +10,44 @@ import com.tumansh.shortlink.entity.ShortUrl;
 import com.tumansh.shortlink.entity.User;
 import com.tumansh.shortlink.exception.AccessDeniedException;
 import com.tumansh.shortlink.exception.ShortUrlNotFoundException;
+import com.tumansh.shortlink.exception.UserNotFoundException;
 import com.tumansh.shortlink.repo.AnalyticsRepo;
 import com.tumansh.shortlink.repo.ShortUrlRepo;
 import com.tumansh.shortlink.repo.UserRepo;
 import com.tumansh.shortlink.util.ShortCodeGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ShortUrlService {
-
+    private static final Logger logger =
+            LoggerFactory.getLogger(ShortUrlService.class);
+    @Value("${app.redis.cache-ttl-minutes}")
+    private long cacheTtlMinutes;
     private final ShortUrlRepo shortUrlRepository;
     private final AnalyticsRepo analyticsRepo;
     private final UserRepo userRepo;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public ShortUrlService(
-            ShortUrlRepo shortUrlRepository, AnalyticsRepo analyticsRepo, UserRepo userRepo) {
+            ShortUrlRepo shortUrlRepository,
+            AnalyticsRepo analyticsRepo,
+            UserRepo userRepo,
+            RedisTemplate<String, String> redisTemplate) {
 
         this.shortUrlRepository = shortUrlRepository;
         this.analyticsRepo = analyticsRepo;
         this.userRepo = userRepo;
+        this.redisTemplate = redisTemplate;
     }
 
     public ShortUrlResponse createShortUrl(
@@ -78,37 +93,166 @@ public class ShortUrlService {
 
 
     }
+    //Helper method for redis logic
+    private String getCacheKey(
+            String shortCode) {
 
-    public String getOriginalUrl(
+        return "url:" + shortCode;
+    }
+    private String getCachedOriginalUrl(
+            String shortCode) {
+
+        try {
+
+            return redisTemplate
+                    .opsForValue()
+                    //.get(shortCode);
+                    .get(getCacheKey(shortCode));
+
+        } catch (RedisConnectionFailureException ex) {
+
+//        System.out.println(
+//                "Redis unavailable. Falling back to MySQL."
+//        );
+
+            logger.warn(
+                    "Redis unavailable. Falling back to MySQL.",
+                    ex
+            );
+
+            return null;
+        }
+    }
+    private void cacheOriginalUrl(
             String shortCode,
+            String originalUrl) {
+
+        try {
+
+            redisTemplate
+                    .opsForValue()
+                    .set(
+                            //shortCode,
+                            getCacheKey(shortCode),
+
+                            originalUrl,
+
+                            cacheTtlMinutes,
+
+                            TimeUnit.MINUTES
+                    );
+
+        } catch (RedisConnectionFailureException ex) {
+
+//        System.out.println(
+//                "Redis unavailable. Cache not updated."
+//        );
+
+            logger.warn(
+                    "Redis unavailable. Cache not updated.",
+                    ex
+            );
+        }
+    }
+    private void saveAnalytics(
+            ShortUrl shortUrl,
             String ipAddress,
             String userAgent) {
-
-        ShortUrl shortUrl =
-                findShortUrl(shortCode);
-
-        shortUrl.setClickCount(
-                shortUrl.getClickCount() + 1
-        );
-
-        shortUrlRepository.save(shortUrl);
 
         Analytics analytics =
                 new Analytics();
 
-        analytics.setIpAddress(ipAddress);
+        analytics.setIpAddress(
+                ipAddress
+        );
 
-        analytics.setUserAgent(userAgent);
+        analytics.setUserAgent(
+                userAgent
+        );
 
         analytics.setClickedAt(
                 LocalDateTime.now()
         );
 
-        analytics.setShortUrl(shortUrl);
+        analytics.setShortUrl(
+                shortUrl
+        );
 
-        analyticsRepo.save(analytics);
+        analyticsRepo.save(
+                analytics
+        );
+    }
+    private void incrementClickCount(
+            ShortUrl shortUrl) {
 
-        return shortUrl.getOriginalUrl();
+        shortUrl.setClickCount(
+                shortUrl.getClickCount() + 1
+        );
+
+        shortUrlRepository.save(
+                shortUrl
+        );
+    }
+    public String getOriginalUrl(
+            String shortCode,
+            String ipAddress,
+            String userAgent) {
+
+        String originalUrl =
+                getCachedOriginalUrl(shortCode);
+
+        ShortUrl shortUrl;
+
+        if (originalUrl != null) {
+
+//        System.out.println("Cache Hit");
+
+            logger.info(
+                    "Cache hit for shortCode={}",
+                    shortCode
+            );
+
+            /*
+             * We intentionally fetch the entity even on cache hit
+             * because analytics recording and click count updates
+             * require the ShortUrl entity.
+             */
+
+            shortUrl =
+                    findShortUrl(shortCode);
+
+        } else {
+
+//        System.out.println("Cache Miss");
+
+            logger.info(
+                    "Cache miss for shortCode={}",
+                    shortCode
+            );
+
+            shortUrl =
+                    findShortUrl(shortCode);
+
+            originalUrl =
+                    shortUrl.getOriginalUrl();
+
+            cacheOriginalUrl(
+                    shortCode,
+                    originalUrl
+            );
+        }
+
+        incrementClickCount(
+                shortUrl
+        );
+
+        saveAnalytics(
+                shortUrl,
+                ipAddress,
+                userAgent
+        );
+
+        return originalUrl;
     }
 
     //    public List<UrlDetailsResponse> getAllUrls() {
@@ -129,8 +273,6 @@ public class ShortUrlService {
 
         ShortUrl shortUrl =
                 findShortUrl(shortCode);
-
-        validateOwnership(shortUrl);
 
         validateOwnership(shortUrl);
 
@@ -205,7 +347,7 @@ public class ShortUrlService {
 
         return userRepo.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new UserNotFoundException(
                                 "User not found"
                         ));
     }

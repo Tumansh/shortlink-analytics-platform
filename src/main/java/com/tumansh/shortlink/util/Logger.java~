@@ -1,0 +1,4 @@
+package com.tumansh.shortlink.util;
+
+public class Logger implements org.slf4j.Logger {
+}
