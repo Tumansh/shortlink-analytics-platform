@@ -24,10 +24,17 @@ public class ShortUrlController {
         this.shortUrlService = shortUrlService;
     }
 
-    @PostMapping
-    public ShortUrlResponse createShortUrl(@Valid @RequestBody CreateShortUrlRequest request) {
 
-        return shortUrlService.createShortUrl(request);
+    @PostMapping
+    public ResponseEntity<ShortUrlResponse> createShortUrl(
+            @Valid @RequestBody CreateShortUrlRequest request) {
+
+        ShortUrlResponse response =
+                shortUrlService.createShortUrl(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @GetMapping("/redirect/{shortCode}")
@@ -45,32 +52,42 @@ public class ShortUrlController {
     }
 
     //    @PreAuthorize("hasRole('ADMIN')")
-//    @GetMapping
-//    public List<UrlDetailsResponse> getAllUrls() {
-//        return shortUrlService.getAllUrls();
-//    }
+    //    @GetMapping
+    //    public List<UrlDetailsResponse> getAllUrls() {
+    //        return shortUrlService.getAllUrls();
+    //    }
     @GetMapping("/my")
-    public List<MyUrlsResponse> getMyUrls() {
-        return shortUrlService.getMyUrls();
+    public ResponseEntity<List<MyUrlsResponse>> getMyUrls() {
+
+        return ResponseEntity.ok(
+                shortUrlService.getMyUrls()
+        );
     }
 
     @GetMapping("/{shortCode}")
-    public UrlDetailsResponse getUrl(@PathVariable String shortCode) {
+    public ResponseEntity<UrlDetailsResponse> getUrl(
+            @PathVariable String shortCode) {
 
-        return shortUrlService.getUrl(shortCode);
+        return ResponseEntity.ok(
+                shortUrlService.getUrl(shortCode)
+        );
     }
 
     @DeleteMapping("/{shortCode}")
-    public ApiResponse deleteUrl(@PathVariable String shortCode) {
-
+    public ResponseEntity<ApiResponse> deleteUrl(@PathVariable String shortCode) {
         shortUrlService.deleteUrl(shortCode);
-
-        return new ApiResponse("Short URL deleted successfully");
+        return ResponseEntity.ok(
+                new ApiResponse(
+                        "Short URL deleted successfully"
+                )
+        );
     }
 
     @GetMapping("/analytics/{shortCode}")
-    public AnalyticsResponse getAnalytics(@PathVariable String shortCode) {
+    public ResponseEntity<AnalyticsResponse> getAnalytics(
+            @PathVariable String shortCode) {
 
-        return shortUrlService.getAnalytics(shortCode);
+        return ResponseEntity.ok(
+                shortUrlService.getAnalytics(shortCode)
+        );
     }
-}

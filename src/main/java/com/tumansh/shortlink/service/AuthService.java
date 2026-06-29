@@ -60,7 +60,9 @@ public class AuthService {
 
         User user = userRepo.findByEmail(request.email())
                 .orElseThrow(() ->
-                        new RuntimeException("Invalid credentials"));
+                        new InvalidCredentialsException(
+                                "Invalid email or password"
+                        ));
 
         if (!passwordEncoder.matches(
                 request.password(),

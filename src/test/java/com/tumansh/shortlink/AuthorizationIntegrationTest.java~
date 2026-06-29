@@ -1,0 +1,203 @@
+package com.tumansh.shortlink;
+
+import com.tumansh.shortlink.dto.request.CreateShortUrlRequest;
+import com.tumansh.shortlink.entity.ShortUrl;
+import com.tumansh.shortlink.entity.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+public class ShortUrlControllerIntegrationTest
+        extends BaseIntegrationTest {
+
+    @Test
+    void shouldCreateShortUrlSuccessfully() throws Exception {
+
+        User user = createUser();
+
+        CreateShortUrlRequest request =
+                new CreateShortUrlRequest(
+                        "https://google.com"
+                );
+
+        mockMvc.perform(
+                        post("/urls")
+                                .header(
+                                        "Authorization",
+                                        bearerToken(user)
+                                )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        objectMapper.writeValueAsString(request)
+                                )
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.shortCode").exists())
+                .andExpect(jsonPath("$.shortUrl")
+                        .value(containsString("/urls/redirect/")));
+
+        assertEquals(
+                1,
+                shortUrlRepo.count()
+        );
+    }
+
+    @Test
+    void shouldReturnUnauthorizedWhenCreatingUrlWithoutToken()
+            throws Exception {
+
+        CreateShortUrlRequest request =
+                new CreateShortUrlRequest(
+                        "https://google.com"
+                );
+
+        mockMvc.perform(
+                        post("/urls")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        objectMapper.writeValueAsString(request)
+                                )
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturnCurrentUsersUrls()
+            throws Exception {
+
+        User user = createUser();
+
+        createShortUrl(
+                user,
+                "abc123",
+                "https://google.com"
+        );
+
+        mockMvc.perform(
+                        get("/urls/my")
+                                .header(
+                                        "Authorization",
+                                        bearerToken(user)
+                                )
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].shortCode")
+                        .value("abc123"));
+    }
+
+    @Test
+    void shouldReturnUrlDetails()
+            throws Exception {
+
+        User user = createUser();
+
+        createShortUrl(
+                user,
+                "abc123",
+                "https://google.com"
+        );
+
+        mockMvc.perform(
+                        get("/urls/abc123")
+                                .header(
+                                        "Authorization",
+                                        bearerToken(user)
+                                )
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.shortCode")
+                        .value("abc123"))
+                .andExpect(jsonPath("$.originalUrl")
+                        .value("https://google.com"));
+    }
+
+    @Test
+    void shouldRedirectSuccessfully()
+            throws Exception {
+
+        User user = createUser();
+
+        createShortUrl(
+                user,
+                "abc123",
+                "https://google.com"
+        );
+
+        mockMvc.perform(
+                        get("/urls/redirect/abc123")
+                )
+                .andExpect(status().isFound())
+                .andExpect(header().string(
+                        "Location",
+                        "https://google.com"
+                ));
+
+        ShortUrl url =
+                shortUrlRepo
+                        .findByShortCode("abc123")
+                        .orElseThrow();
+
+        assertEquals(
+                1L,
+                url.getClickCount()
+        );
+    }
+
+    @Test
+    void shouldDeleteUrlSuccessfully()
+            throws Exception {
+
+        User user = createUser();
+
+        createShortUrl(
+                user,
+                "abc123",
+                "https://google.com"
+        );
+
+        mockMvc.perform(
+                        delete("/urls/abc123")
+                                .header(
+                                        "Authorization",
+                                        bearerToken(user)
+                                )
+                )
+                .andExpect(status().isOk());
+
+        assertFalse(
+                shortUrlRepo
+                        .findByShortCode("abc123")
+                        .isPresent()
+        );
+    }
+
+    @Test
+    void shouldReturn404ForUnknownShortCode()
+            throws Exception {
+
+        User user = createUser();
+
+        mockMvc.perform(
+                        get("/urls/unknown")
+                                .header(
+                                        "Authorization",
+                                        bearerToken(user)
+                                )
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn404WhenRedirectingUnknownShortCode()
+            throws Exception {
+
+        mockMvc.perform(
+                        get("/urls/redirect/unknown")
+                )
+                .andExpect(status().isNotFound());
+    }
+}

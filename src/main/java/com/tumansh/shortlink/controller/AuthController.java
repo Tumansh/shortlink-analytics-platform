@@ -6,6 +6,8 @@ import com.tumansh.shortlink.dto.response.ApiResponse;
 import com.tumansh.shortlink.dto.response.AuthResponse;
 import com.tumansh.shortlink.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,21 +24,21 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ApiResponse register(
-            @Valid
-            @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse> register(
+            @Valid @RequestBody RegisterRequest request) {
 
         authService.register(request);
 
-        return new ApiResponse(
-                "User registered successfully"
-        );
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiResponse(
+                        "User registered successfully"
+                ));
     }
 
     @PostMapping("/login")
     public AuthResponse login(
             @RequestBody LoginRequest request) {
-
         return authService.login(request);
     }
 

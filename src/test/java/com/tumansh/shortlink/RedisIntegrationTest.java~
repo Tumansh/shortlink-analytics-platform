@@ -1,0 +1,195 @@
+package com.tumansh.shortlink;
+
+import com.tumansh.shortlink.entity.ShortUrl;
+import com.tumansh.shortlink.entity.User;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+public class AnalyticsIntegrationTest
+        extends BaseIntegrationTest {
+
+    @Test
+    void shouldIncrementClickCountAfterRedirect()
+            throws Exception {
+
+        User user = createUser();
+
+        createShortUrl(
+                user,
+                "abc123",
+                "https://google.com"
+        );
+
+        mockMvc.perform(
+                get("/urls/redirect/abc123")
+        ).andExpect(status().isFound());
+
+        ShortUrl shortUrl =
+                shortUrlRepo.findByShortCode("abc123")
+                        .orElseThrow();
+
+        assertEquals(
+                1L,
+                shortUrl.getClickCount()
+        );
+    }
+
+    @Test
+    void shouldIncrementClickCountForMultipleRedirects()
+            throws Exception {
+
+        User user = createUser();
+
+        createShortUrl(
+                user,
+                "abc123",
+                "https://google.com"
+        );
+
+        mockMvc.perform(get("/urls/redirect/abc123"));
+        mockMvc.perform(get("/urls/redirect/abc123"));
+        mockMvc.perform(get("/urls/redirect/abc123"));
+
+        ShortUrl shortUrl =
+                shortUrlRepo.findByShortCode("abc123")
+                        .orElseThrow();
+
+        assertEquals(
+                3L,
+                shortUrl.getClickCount()
+        );
+    }
+
+    @Test
+    void shouldCreateAnalyticsEntryAfterRedirect()
+            throws Exception {
+
+        User user = createUser();
+
+        ShortUrl shortUrl =
+                createShortUrl(
+                        user,
+                        "abc123",
+                        "https://google.com"
+                );
+
+        mockMvc.perform(
+                get("/urls/redirect/abc123")
+        ).andExpect(status().isFound());
+
+        assertEquals(
+                1L,
+                analyticsRepo.countByShortUrl(shortUrl)
+        );
+    }
+
+    @Test
+    void shouldCreateAnalyticsEntryForEveryRedirect()
+            throws Exception {
+
+        User user = createUser();
+
+        ShortUrl shortUrl =
+                createShortUrl(
+                        user,
+                        "abc123",
+                        "https://google.com"
+                );
+
+        mockMvc.perform(get("/urls/redirect/abc123"));
+        mockMvc.perform(get("/urls/redirect/abc123"));
+        mockMvc.perform(get("/urls/redirect/abc123"));
+
+        assertEquals(
+                3L,
+                analyticsRepo.countByShortUrl(shortUrl)
+        );
+    }
+
+    @Test
+    void shouldReturnAnalyticsSuccessfully()
+            throws Exception {
+
+        User user = createUser();
+
+        createShortUrl(
+                user,
+                "abc123",
+                "https://google.com"
+        );
+
+        mockMvc.perform(get("/urls/redirect/abc123"));
+        mockMvc.perform(get("/urls/redirect/abc123"));
+
+        mockMvc.perform(
+                        get("/urls/analytics/abc123")
+                                .header(
+                                        "Authorization",
+                                        bearerToken(user)
+                                )
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.shortCode")
+                        .value("abc123"))
+                .andExpect(jsonPath("$.totalClicks")
+                        .value(2))
+                .andExpect(jsonPath("$.uniqueVisitors")
+                        .value(1));
+    }
+
+    @Test
+    void shouldReturnZeroAnalyticsBeforeRedirect()
+            throws Exception {
+
+        User user = createUser();
+
+        createShortUrl(
+                user,
+                "abc123",
+                "https://google.com"
+        );
+
+        mockMvc.perform(
+                        get("/urls/analytics/abc123")
+                                .header(
+                                        "Authorization",
+                                        bearerToken(user)
+                                )
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalClicks")
+                        .value(0))
+                .andExpect(jsonPath("$.uniqueVisitors")
+                        .value(0));
+    }
+
+    @Test
+    void shouldReturn404ForUnknownAnalytics()
+            throws Exception {
+
+        User user = createUser();
+
+        mockMvc.perform(
+                        get("/urls/analytics/unknown")
+                                .header(
+                                        "Authorization",
+                                        bearerToken(user)
+                                )
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldRequireAuthenticationForAnalytics()
+            throws Exception {
+
+        mockMvc.perform(
+                        get("/urls/analytics/abc123")
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+}

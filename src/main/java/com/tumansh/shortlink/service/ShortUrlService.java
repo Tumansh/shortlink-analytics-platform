@@ -31,12 +31,12 @@ import java.util.concurrent.TimeUnit;
 public class ShortUrlService {
     private static final Logger logger =
             LoggerFactory.getLogger(ShortUrlService.class);
-    @Value("${app.redis.cache-ttl-minutes}")
-    private long cacheTtlMinutes;
     private final ShortUrlRepo shortUrlRepository;
     private final AnalyticsRepo analyticsRepo;
     private final UserRepo userRepo;
     private final RedisTemplate<String, String> redisTemplate;
+    @Value("${app.redis.cache-ttl-minutes}")
+    private long cacheTtlMinutes;
 
     public ShortUrlService(
             ShortUrlRepo shortUrlRepository,
@@ -93,12 +93,14 @@ public class ShortUrlService {
 
 
     }
+
     //Helper method for redis logic
     private String getCacheKey(
             String shortCode) {
 
         return "url:" + shortCode;
     }
+
     private String getCachedOriginalUrl(
             String shortCode) {
 
@@ -123,6 +125,7 @@ public class ShortUrlService {
             return null;
         }
     }
+
     private void cacheOriginalUrl(
             String shortCode,
             String originalUrl) {
@@ -154,6 +157,7 @@ public class ShortUrlService {
             );
         }
     }
+
     private void saveAnalytics(
             ShortUrl shortUrl,
             String ipAddress,
@@ -182,6 +186,7 @@ public class ShortUrlService {
                 analytics
         );
     }
+
     private void incrementClickCount(
             ShortUrl shortUrl) {
 
@@ -193,6 +198,7 @@ public class ShortUrlService {
                 shortUrl
         );
     }
+
     public String getOriginalUrl(
             String shortCode,
             String ipAddress,

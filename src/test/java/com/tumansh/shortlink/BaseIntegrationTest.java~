@@ -1,0 +1,140 @@
+package com.tumansh.shortlink;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tumansh.shortlink.entity.Role;
+import com.tumansh.shortlink.entity.ShortUrl;
+import com.tumansh.shortlink.entity.User;
+import com.tumansh.shortlink.repo.AnalyticsRepo;
+import com.tumansh.shortlink.repo.ShortUrlRepo;
+import com.tumansh.shortlink.repo.UserRepo;
+import com.tumansh.shortlink.security.JWTService;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.LocalDateTime;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+public abstract class BaseIntegrationTest {
+
+    @Autowired
+    protected MockMvc mockMvc;
+
+    @Autowired
+    protected ObjectMapper objectMapper;
+
+    @Autowired
+    protected UserRepo userRepo;
+
+    @Autowired
+    protected ShortUrlRepo shortUrlRepo;
+
+    @Autowired
+    protected AnalyticsRepo analyticsRepo;
+
+    @Autowired
+    protected JWTService jwtService;
+
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
+
+    @Autowired
+    protected RedisTemplate<String, String> redisTemplate;
+
+    @BeforeEach
+    void cleanUp() {
+
+        analyticsRepo.deleteAll();
+        shortUrlRepo.deleteAll();
+        userRepo.deleteAll();
+
+        redisTemplate.getConnectionFactory()
+                .getConnection()
+                .serverCommands()
+                .flushAll();
+    }
+
+    protected User createUser() {
+
+        User user = new User();
+
+        user.setName("Tumansh");
+
+        user.setEmail("tumansh@gmail.com");
+
+        user.setPassword(
+                passwordEncoder.encode("Password@123")
+        );
+
+        user.setRole(Role.USER);
+
+        user.setCreatedAt(
+                LocalDateTime.now()
+        );
+
+        return userRepo.save(user);
+    }
+
+    protected User createSecondUser() {
+
+        User user = new User();
+
+        user.setName("John");
+
+        user.setEmail("john@gmail.com");
+
+        user.setPassword(
+                passwordEncoder.encode("Password@123")
+        );
+
+        user.setRole(Role.USER);
+
+        user.setCreatedAt(
+                LocalDateTime.now()
+        );
+
+        return userRepo.save(user);
+    }
+
+    protected ShortUrl createShortUrl(
+            User user,
+            String shortCode,
+            String originalUrl) {
+
+        ShortUrl shortUrl = new ShortUrl();
+
+        shortUrl.setShortCode(shortCode);
+
+        shortUrl.setOriginalUrl(originalUrl);
+
+        shortUrl.setClickCount(0L);
+
+        shortUrl.setCreatedAt(
+                LocalDateTime.now()
+        );
+
+        shortUrl.setUser(user);
+
+        return shortUrlRepo.save(shortUrl);
+    }
+
+    protected String generateToken(
+            User user) {
+
+        return jwtService.generateToken(
+                user.getEmail()
+        );
+    }
+
+    protected String bearerToken(
+            User user) {
+
+        return "Bearer " + generateToken(user);
+    }
+
+}

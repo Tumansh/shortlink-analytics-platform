@@ -1,0 +1,122 @@
+package com.tumansh.shortlink;
+
+import com.tumansh.shortlink.entity.ShortUrl;
+import com.tumansh.shortlink.repo.AnalyticsRepo;
+import com.tumansh.shortlink.repo.ShortUrlRepo;
+import com.tumansh.shortlink.repo.UserRepo;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class ShortUrlServiceTest {
+
+    @Mock
+    private ShortUrlRepo shortUrlRepo;
+
+    @Mock
+    private AnalyticsRepo analyticsRepo;
+
+    @Mock
+    private UserRepo userRepo;
+
+    @Mock
+    private RedisTemplate<String,String> redisTemplate;
+
+    @InjectMocks
+    private ShortUrlService shortUrlService;
+
+    private ShortUrl shortUrl;
+
+    @BeforeEach
+    void setup() {
+
+        shortUrl = new ShortUrl();
+
+        shortUrl.setShortCode("abc123");
+        shortUrl.setOriginalUrl("https://google.com");
+        shortUrl.setClickCount(0L);
+
+    }
+
+    @Test
+    void shouldFindShortUrl() {
+
+        when(shortUrlRepo.findByShortCode("abc123"))
+                .thenReturn(Optional.of(shortUrl));
+
+        Optional<ShortUrl> result =
+                shortUrlRepo.findByShortCode("abc123");
+
+        assertTrue(result.isPresent());
+
+        assertEquals(
+                "abc123",
+                result.get().getShortCode()
+        );
+    }
+
+    @Test
+    void shouldIncrementClickCount() {
+
+        shortUrl.setClickCount(5L);
+
+        shortUrl.setClickCount(
+                shortUrl.getClickCount()+1
+        );
+
+        assertEquals(
+                6L,
+                shortUrl.getClickCount()
+        );
+    }
+
+    @Test
+    void shouldSaveShortUrl() {
+
+        when(shortUrlRepo.save(any()))
+                .thenReturn(shortUrl);
+
+        ShortUrl saved =
+                shortUrlRepo.save(shortUrl);
+
+        assertNotNull(saved);
+
+        verify(shortUrlRepo)
+                .save(shortUrl);
+    }
+
+    @Test
+    void shouldDeleteShortUrl() {
+
+        doNothing()
+                .when(shortUrlRepo)
+                .delete(shortUrl);
+
+        shortUrlRepo.delete(shortUrl);
+
+        verify(shortUrlRepo)
+                .delete(shortUrl);
+    }
+
+    @Test
+    void shouldCheckShortCodeExists() {
+
+        when(shortUrlRepo.existsByShortCode("abc123"))
+                .thenReturn(true);
+
+        assertTrue(
+                shortUrlRepo.existsByShortCode("abc123")
+        );
+    }
+
+}

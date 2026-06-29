@@ -1,10 +1,6 @@
-
-
-
 // Just Implementation to check about JWT working
 
 //package com.tumansh.shortlink.controller;
-
 
 
 //
