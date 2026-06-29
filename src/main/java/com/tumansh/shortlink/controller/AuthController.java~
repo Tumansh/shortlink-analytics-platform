@@ -44,10 +44,6 @@ public class AuthController {
                 ));
     }
 
-    @Operation(
-            summary = "Login user",
-            description = "Authenticates a user and returns a JWT token."
-    )
     @PostMapping("/login")
     public AuthResponse login(
             @RequestBody LoginRequest request) {

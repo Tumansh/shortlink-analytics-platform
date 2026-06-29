@@ -3,6 +3,8 @@ package com.tumansh.shortlink.controller;
 import com.tumansh.shortlink.dto.request.CreateShortUrlRequest;
 import com.tumansh.shortlink.dto.response.*;
 import com.tumansh.shortlink.service.ShortUrlService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+@Tag(
+        name = "Short URL Management",
+        description = "Operations for creating, managing and analyzing short URLs."
+)
 @RestController
 @RequestMapping("/urls")
 public class ShortUrlController {
@@ -24,7 +30,10 @@ public class ShortUrlController {
         this.shortUrlService = shortUrlService;
     }
 
-
+    @Operation(
+            summary = "Create a short URL",
+            description = "Creates a new shortened URL for the authenticated user."
+    )
     @PostMapping
     public ResponseEntity<ShortUrlResponse> createShortUrl(
             @Valid @RequestBody CreateShortUrlRequest request) {
@@ -36,7 +45,10 @@ public class ShortUrlController {
                 .status(HttpStatus.CREATED)
                 .body(response);
     }
-
+    @Operation(
+            summary = "Redirect to original URL",
+            description = "Redirects to the original URL using the short code."
+    )
     @GetMapping("/redirect/{shortCode}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode, HttpServletRequest request) {
 
@@ -56,6 +68,11 @@ public class ShortUrlController {
     //    public List<UrlDetailsResponse> getAllUrls() {
     //        return shortUrlService.getAllUrls();
     //    }
+
+    @Operation(
+            summary = "Get my URLs",
+            description = "Returns all URLs created by the authenticated user."
+    )
     @GetMapping("/my")
     public ResponseEntity<List<MyUrlsResponse>> getMyUrls() {
 
@@ -63,7 +80,10 @@ public class ShortUrlController {
                 shortUrlService.getMyUrls()
         );
     }
-
+    @Operation(
+            summary = "Get URL details",
+            description = "Returns complete information about a specific short URL."
+    )
     @GetMapping("/{shortCode}")
     public ResponseEntity<UrlDetailsResponse> getUrl(
             @PathVariable String shortCode) {
@@ -72,7 +92,10 @@ public class ShortUrlController {
                 shortUrlService.getUrl(shortCode)
         );
     }
-
+    @Operation(
+            summary = "Delete short URL",
+            description = "Deletes a short URL owned by the authenticated user."
+    )
     @DeleteMapping("/{shortCode}")
     public ResponseEntity<ApiResponse> deleteUrl(@PathVariable String shortCode) {
         shortUrlService.deleteUrl(shortCode);
@@ -82,7 +105,10 @@ public class ShortUrlController {
                 )
         );
     }
-
+    @Operation(
+            summary = "Get URL analytics",
+            description = "Returns analytics including clicks and visitor statistics."
+    )
     @GetMapping("/analytics/{shortCode}")
     public ResponseEntity<AnalyticsResponse> getAnalytics(
             @PathVariable String shortCode) {
