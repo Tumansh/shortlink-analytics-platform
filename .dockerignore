@@ -1,5 +1,6 @@
-target
 .git
 .idea
-*.iml
+.mvn
+src
+target/*.original
 README.md
