@@ -3,14 +3,24 @@ services:
   mysql:
     image: mysql:8.4
     container_name: shortlink-mysql
-    restart: always
+    restart: unless-stopped
+
     environment:
       MYSQL_ROOT_PASSWORD: Tum@2529
       MYSQL_DATABASE: shortlink
+
     ports:
       - "3307:3306"
+
     volumes:
       - mysql-data:/var/lib/mysql
+
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -uroot -pTum@2529 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   redis:
     image: redis:latest
@@ -26,8 +36,10 @@ services:
     container_name: shortlink-app
     restart: always
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
     ports:
       - "8081:8081"
