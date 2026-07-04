@@ -22,7 +22,7 @@ services:
       - redis-data:/data
 
   app:
-    image: tumansh03/shortlink-analytics-platform:latest
+    build: .
     container_name: shortlink-app
     restart: always
     depends_on:
