@@ -1,6 +1,4 @@
 .git
 .idea
-.mvn
-src
 target/*.original
 README.md
