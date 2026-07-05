@@ -1,71 +1,106 @@
 # 🔗 ShortLink Analytics Platform
 
-A production-inspired backend application built using **Spring Boot** that enables users to create secure short URLs, manage them with JWT authentication, analyze click statistics, and improve performance using Redis caching.
+A production-inspired backend application built using **Spring Boot** that enables users to securely create, manage, and analyze short URLs. The application is containerized using **Docker**, orchestrated with **Docker Compose**, and deployed on **AWS EC2** with **MySQL** and **Redis**.
 
 ---
 
-## 🚀 Features
+# 🚀 Features
 
-### Authentication & Security
+## Authentication & Security
 
-* User Registration
-* User Login
-* JWT Authentication
-* BCrypt Password Encryption
-* Stateless Authentication using Spring Security
+- User Registration
+- User Login
+- JWT Authentication
+- BCrypt Password Encryption
+- Stateless Authentication with Spring Security
+- Protected REST APIs
 
-### URL Management
+---
 
-* Create Short URLs
-* Redirect to Original URLs
-* View Personal URLs
-* Delete Short URLs
+## URL Management
 
-### Analytics
+- Create Short URLs
+- Redirect to Original URLs
+- View User URLs
+- Delete Short URLs
 
-* Total Click Count
-* Click History
-* Visitor IP Tracking
-* User-Agent Tracking
+---
 
-### Performance
+## Analytics
 
-* Redis Caching for URL Redirection
-* Automatic Cache Eviction on URL Deletion
-* Configurable Cache TTL
+- Total Click Count
+- Click History
+- Visitor IP Tracking
+- User-Agent Tracking
 
-### API Documentation
+---
 
-* Interactive Swagger/OpenAPI Documentation
+## Performance
 
-### Validation & Error Handling
+- Redis Caching for URL Redirection
+- Automatic Cache Eviction
+- Configurable Cache TTL
+- Reduced Database Lookups
 
-* Bean Validation
-* Global Exception Handling
-* Standardized API Responses
+---
+
+## Validation & Error Handling
+
+- Bean Validation
+- Global Exception Handling
+- Standardized API Responses
+
+---
+
+## API Documentation
+
+- Interactive Swagger / OpenAPI Documentation
 
 ---
 
 # 🛠 Tech Stack
 
-| Category          | Technology                  |
-| ----------------- | --------------------------- |
-| Language          | Java 21                     |
-| Framework         | Spring Boot                 |
-| Security          | Spring Security, JWT        |
-| Database          | MySQL                       |
-| Cache             | Redis                       |
-| ORM               | Spring Data JPA / Hibernate |
-| Build Tool        | Maven                       |
-| API Documentation | Swagger / OpenAPI           |
-| Testing           | JUnit 5, Mockito            |
-| Version Control   | Git & GitHub                |
+| Category | Technology |
+|-----------|------------|
+| Language | Java 21 |
+| Framework | Spring Boot |
+| Security | Spring Security, JWT |
+| Database | MySQL |
+| Cache | Redis |
+| ORM | Spring Data JPA / Hibernate |
+| Build Tool | Maven |
+| Containerization | Docker |
+| Orchestration | Docker Compose |
+| Cloud | AWS EC2 |
+| API Documentation | Swagger / OpenAPI |
+| Testing | JUnit 5, Mockito |
+| Version Control | Git & GitHub |
+
+---
+
+# 🏗 Architecture
+
+```
+                        Internet
+                            │
+                            ▼
+                  AWS EC2 (Ubuntu Server)
+                            │
+                    Docker Compose
+                            │
+        ┌───────────────────┼───────────────────┐
+        ▼                   ▼                   ▼
+ Spring Boot App         MySQL              Redis
+        │
+        ▼
+   REST APIs + JWT
+```
 
 ---
 
 # 📂 Project Structure
 
-```text
+```
 src
 ├── config
 ├── controller
@@ -77,18 +112,29 @@ src
 ├── repo
 ├── security
 ├── service
-└── util
+├── util
+└── ShortLinkAnalyticsPlatformApplication
 ```
 
 ---
 
 # 🔐 Authentication Flow
 
-1. Register a new user.
-2. Login with email and password.
-3. Receive a JWT token.
-4. Click **Authorize** in Swagger.
-5. Access secured endpoints using the token.
+```
+Register
+     │
+     ▼
+Login
+     │
+     ▼
+Receive JWT Token
+     │
+     ▼
+Authorize in Swagger
+     │
+     ▼
+Access Protected APIs
+```
 
 ---
 
@@ -96,132 +142,224 @@ src
 
 ## Authentication
 
-| Method | Endpoint         |
-| ------ | ---------------- |
-| POST   | `/auth/register` |
-| POST   | `/auth/login`    |
+| Method | Endpoint |
+|--------|----------|
+| POST | /auth/register |
+| POST | /auth/login |
 
 ---
 
 ## URL Management
 
-| Method | Endpoint            |
-| ------ | ------------------- |
-| POST   | `/urls`             |
-| GET    | `/urls/my`          |
-| GET    | `/urls/{shortCode}` |
-| DELETE | `/urls/{shortCode}` |
+| Method | Endpoint |
+|--------|----------|
+| POST | /urls |
+| GET | /urls/my |
+| GET | /urls/{shortCode} |
+| DELETE | /urls/{shortCode} |
 
 ---
 
 ## Public Endpoint
 
-| Method | Endpoint                     |
-| ------ | ---------------------------- |
-| GET    | `/urls/redirect/{shortCode}` |
+| Method | Endpoint |
+|--------|----------|
+| GET | /urls/redirect/{shortCode} |
 
 ---
 
 ## Analytics
 
-| Method | Endpoint                      |
-| ------ | ----------------------------- |
-| GET    | `/urls/analytics/{shortCode}` |
+| Method | Endpoint |
+|--------|----------|
+| GET | /urls/analytics/{shortCode} |
 
 ---
 
 # ⚡ Redis Cache
 
-The application caches frequently accessed short URLs in Redis to reduce database lookups and improve redirect performance.
+Frequently accessed URLs are cached in Redis to improve redirect performance.
 
-* Cache on first redirect
-* Subsequent redirects served from Redis
-* Automatic cache eviction when a URL is deleted
-* Configurable cache expiration
+- Cache on first redirect
+- Subsequent redirects served from Redis
+- Automatic cache eviction on URL deletion
+- Configurable cache expiration
 
 ---
 
-# 🗄 Database
-
-Main Entities
-
-* User
-* ShortUrl
-* Analytics
-
-Relationships
+# 🗄 Database Design
 
 ```
 User
-  │
-  └──────< ShortUrl
-              │
-              └──────< Analytics
+ │
+ └────────────< ShortUrl
+                    │
+                    └────────────< Analytics
 ```
 
 ---
 
-# 📖 API Documentation
+# 📖 Swagger Documentation
 
-After starting the application, Swagger UI is available at:
+After starting the application:
+
+Local
 
 ```
 http://localhost:8081/swagger-ui/index.html
 ```
 
+AWS Deployment
+
+```
+http://<EC2-PUBLIC-IP>:8081/swagger-ui/index.html
+```
+
 ---
 
-# ▶ Running the Application
+# 🐳 Running with Docker
 
-## Clone the repository
+Clone the repository
 
 ```bash
 git clone https://github.com/Tumansh/shortlink-analytics-platform.git
+
+cd shortlink-analytics-platform
 ```
 
-## Navigate to the project
+Start the complete application
 
 ```bash
-cd ShortLink-Analytics-Platform
+docker compose up -d
 ```
 
-## Configure
+This starts
 
-Copy the example configuration:
+- Spring Boot Application
+- MySQL
+- Redis
 
-```
-application-example.properties
-```
-
-to
-
-```
-application.properties
-```
-
-and update the database, Redis, and JWT configuration.
-
-## Start MySQL
-
-Ensure MySQL is running.
-
-## Start Redis
-
-Ensure Redis Server is running.
-
-## Run the application
+Verify running containers
 
 ```bash
-mvn spring-boot:run
+docker ps
 ```
 
+Stop containers
+
+```bash
+docker compose down
+```
+
+Remove containers and volumes
+
+```bash
+docker compose down -v
+```
+
+---
+
+# ⚙ Environment Variables
+
+The application is configured using environment variables.
+
+| Variable | Description |
+|-----------|-------------|
+| SERVER_PORT | Application Port |
+| SPRING_DATASOURCE_URL | MySQL JDBC URL |
+| SPRING_DATASOURCE_USERNAME | Database Username |
+| SPRING_DATASOURCE_PASSWORD | Database Password |
+| SPRING_DATA_REDIS_HOST | Redis Host |
+| SPRING_DATA_REDIS_PORT | Redis Port |
+| JWT_SECRET | JWT Secret Key |
+| JWT_EXPIRATION | JWT Expiration Time |
+
+---
+
+# ☁ AWS Deployment
+
+The application is deployed on an Ubuntu EC2 instance using Docker Compose.
+
+Deployment includes
+
+- Docker
+- Docker Compose
+- MySQL
+- Redis
+- Spring Boot
+- Environment Variables
+- Docker Hub Image
+
+Deployment Flow
+
+```
+Developer
+     │
+     ▼
+GitHub Repository
+     │
+     ▼
+Docker Build
+     │
+     ▼
+Docker Hub
+     │
+     ▼
+AWS EC2
+     │
+     ▼
+Docker Compose
+     │
+ ┌───┴────┐
+ ▼        ▼
+MySQL   Redis
+     │
+     ▼
+Spring Boot
+```
+
+---
+
+# 📦 Docker Image
+
+```
+docker pull tumansh03/shortlink-analytics-platform:latest
+```
+
+---
+
+# 🔧 Future Enhancements
+
+- URL Expiration Support
+- QR Code Generation
+- Custom Short Codes
+- Rate Limiting
+- Docker Multi-stage Builds
+- Nginx Reverse Proxy
+- HTTPS with Let's Encrypt
+- CI/CD Pipeline using GitHub Actions
+- Monitoring with Prometheus & Grafana
 
 ---
 
 # 👨‍💻 Author
 
-**Tumansh Vij**
+## Tumansh Vij
 
 Backend Developer
 
-Java • Spring Boot • Redis • MySQL • REST APIs • Spring Security
+**Tech Stack**
+
+- Java
+- Spring Boot
+- Spring Security
+- JWT
+- MySQL
+- Redis
+- Docker
+- Docker Compose
+- AWS EC2
+- Hibernate
+- REST APIs
+- Maven
+- Git & GitHub
